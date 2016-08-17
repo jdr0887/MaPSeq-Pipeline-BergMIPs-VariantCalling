@@ -1,0 +1,3 @@
+edu.unc.mapseq.commands.bergmips.vc.RegisterToIRODSAction
+edu.unc.mapseq.commands.bergmips.vc.RunWorkflowAction
+edu.unc.mapseq.commands.bergmips.vc.SaveMarkDuplicatesAttributesAction
