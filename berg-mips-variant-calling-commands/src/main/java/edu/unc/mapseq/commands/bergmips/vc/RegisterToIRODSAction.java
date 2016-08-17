@@ -26,7 +26,7 @@ public class RegisterToIRODSAction implements Action {
     private MaPSeqDAOBeanService maPSeqDAOBeanService;
 
     @Option(name = "--subjectMergeHome", description = "subjectMergeHome", required = false, multiValued = false)
-    private String subjectMergeHome = "/projects/sequence_analysis/medgenwork/GS/subject-merge";
+    private String subjectMergeHome = "/projects/sequence_analysis/medgenwork/exp/BergMIPs/subject-merge";
 
     @Option(name = "--subjectName", description = "subjectName", required = false, multiValued = false)
     private String subjectName;

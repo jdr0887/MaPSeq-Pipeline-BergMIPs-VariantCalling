@@ -69,7 +69,7 @@ public class RegisterToIRODSRunnable implements Runnable {
                 tmpDir.mkdirs();
             }
 
-            String irodsDirectory = String.format("/MedGenZone/%s/sequencing/gs/subjectMerge/%s", workflowRun.getWorkflow().getSystem().getValue(),
+            String irodsDirectory = String.format("/MedGenZone/%s/sequencing/bergmips/subjectMerge/%s", workflowRun.getWorkflow().getSystem().getValue(),
                     subjectName);
 
             CommandOutput commandOutput = null;
@@ -97,7 +97,7 @@ public class RegisterToIRODSRunnable implements Runnable {
 
             try {
                 Collection<ServiceReference<WorkflowBeanService>> references = bundleContext.getServiceReferences(WorkflowBeanService.class,
-                        "(osgi.service.blueprint.compname=GSVariantCallingWorkflowBeanService)");
+                        "(osgi.service.blueprint.compname=BergMIPsVariantCallingWorkflowBeanService)");
 
                 if (CollectionUtils.isNotEmpty(references)) {
                     for (ServiceReference<WorkflowBeanService> sr : references) {

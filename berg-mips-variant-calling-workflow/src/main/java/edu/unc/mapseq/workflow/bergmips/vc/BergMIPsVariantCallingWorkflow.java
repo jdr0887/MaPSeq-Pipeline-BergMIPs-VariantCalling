@@ -118,7 +118,7 @@ public class BergMIPsVariantCallingWorkflow extends AbstractSequencingWorkflow {
                     continue;
                 }
 
-                Workflow workflow = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("GSAlignment").get(0);
+                Workflow workflow = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("BergMIPsAlignment").get(0);
 
                 File bamFile = SequencingWorkflowUtil.findFile(getWorkflowBeanService().getMaPSeqDAOBeanService(), sample, workflowRun, workflow,
                         PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ".rg.bam");

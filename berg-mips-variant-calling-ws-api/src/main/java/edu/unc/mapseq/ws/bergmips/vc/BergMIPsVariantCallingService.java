@@ -23,9 +23,9 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_EMPTY)
 @MTOM(enabled = true, threshold = 0)
 @BindingType(value = javax.xml.ws.soap.SOAPBinding.SOAP11HTTP_MTOM_BINDING)
-@WebService(targetNamespace = "http://vc.gs.ws.mapseq.unc.edu", serviceName = "GSVariantCallingService", portName = "GSVariantCallingPort")
+@WebService(targetNamespace = "http://vc.bergmips.ws.mapseq.unc.edu", serviceName = "BergMIPsVariantCallingService", portName = "BergMIPsVariantCallingPort")
 @SOAPBinding(style = Style.DOCUMENT, use = Use.LITERAL, parameterStyle = SOAPBinding.ParameterStyle.WRAPPED)
-@Path("/GSVariantCallingService/")
+@Path("/BergMIPsVariantCallingService/")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public interface BergMIPsVariantCallingService {

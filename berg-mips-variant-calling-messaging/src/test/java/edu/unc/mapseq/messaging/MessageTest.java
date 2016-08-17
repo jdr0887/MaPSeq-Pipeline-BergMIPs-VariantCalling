@@ -40,7 +40,7 @@ public class MessageTest {
         try {
             connection = connectionFactory.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Destination destination = session.createQueue("queue/gs.variant-calling");
+            Destination destination = session.createQueue("queue/bergmips.variant-calling");
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
@@ -105,7 +105,7 @@ public class MessageTest {
         try {
             connection = connectionFactory.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Destination destination = session.createQueue("queue/gs.variant-calling");
+            Destination destination = session.createQueue("queue/bergmips.variant-calling");
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             String format = "{\"entities\":[{\"entityType\":\"Sample\",\"id\":\"%s\"},{\"entityType\":\"WorkflowRun\",\"name\":\"%s-%s\"}]}";
@@ -161,7 +161,7 @@ public class MessageTest {
         try {
             connection = connectionFactory.createConnection();
             session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            Destination destination = session.createQueue("queue/gs.variant-calling");
+            Destination destination = session.createQueue("queue/bergmips.variant-calling");
             MessageProducer producer = session.createProducer(destination);
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
             String format = "{\"entities\":[{\"entityType\":\"Sample\",\"id\":\"%d\"},{\"entityType\":\"WorkflowRun\",\"name\":\"%s_L%d_%s_BWA\"}]}";
