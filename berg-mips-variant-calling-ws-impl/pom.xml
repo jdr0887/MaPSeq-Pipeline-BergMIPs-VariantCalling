@@ -2,13 +2,13 @@
   <parent>
     <groupId>edu.unc.mapseq.pipelines</groupId>
     <artifactId>berg-mips-variant-calling</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.1</version>
   </parent>
   <name>MaPSeq :: Pipelines :: BergMIPs :: Variant Calling :: Web Service Impl</name>
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines.berg-mips-variant-calling</groupId>
   <artifactId>berg-mips-variant-calling-ws-impl</artifactId>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.6.1</version>
   <packaging>bundle</packaging>
   <dependencies>
     <dependency>
