@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>berg-mips-variant-calling</artifactId>
-  <version>0.6.2-SNAPSHOT</version>
+  <version>0.6.2</version>
   <packaging>pom</packaging>
   <url>https://jdr0887.github.io/MaPSeq-Pipeline-BergMIPs-VariantCalling</url>
   <organization>
@@ -31,7 +31,7 @@
     <url>https://github.com/jdr0887/MaPSeq-Pipeline-BergMIPs-VariantCalling</url>
     <developerConnection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-BergMIPs-VariantCalling.git</developerConnection>
     <connection>scm:git:git@github.com:jdr0887/MaPSeq-Pipeline-BergMIPs-VariantCalling.git</connection>
-    <tag>HEAD</tag>
+    <tag>berg-mips-variant-calling-0.6.2</tag>
   </scm>
   <dependencyManagement>
     <dependencies>
@@ -43,17 +43,17 @@
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.berg-mips-variant-calling</groupId>
       	<artifactId>berg-mips-variant-calling-ws-api</artifactId>
-      	<version>0.6.2-SNAPSHOT</version>
+      	<version>0.6.2</version>
       </dependency>
       <dependency>
 	<groupId>edu.unc.mapseq.pipelines.berg-mips-variant-calling</groupId>
 	<artifactId>berg-mips-variant-calling-commons</artifactId>
-	<version>0.6.2-SNAPSHOT</version>
+	<version>0.6.2</version>
       </dependency>
       <dependency>
       	<groupId>edu.unc.mapseq.pipelines.berg-mips-variant-calling</groupId>
       	<artifactId>berg-mips-variant-calling-workflow</artifactId>
-      	<version>0.6.2-SNAPSHOT</version>
+      	<version>0.6.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
