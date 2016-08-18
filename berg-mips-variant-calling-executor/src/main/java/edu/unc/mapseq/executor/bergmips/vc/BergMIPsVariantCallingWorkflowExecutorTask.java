@@ -55,7 +55,7 @@ public class BergMIPsVariantCallingWorkflowExecutorTask extends TimerTask {
             Workflow workflow = null;
             List<Workflow> workflowList = workflowDAO.findByName(getWorkflowName());
             if (CollectionUtils.isEmpty(workflowList)) {
-                workflow = new Workflow(getWorkflowName(), WorkflowSystemType.PRODUCTION);
+                workflow = new Workflow(getWorkflowName(), WorkflowSystemType.EXPERIMENTAL);
                 workflow.setId(workflowDAO.save(workflow));
             } else {
                 workflow = workflowList.get(0);
