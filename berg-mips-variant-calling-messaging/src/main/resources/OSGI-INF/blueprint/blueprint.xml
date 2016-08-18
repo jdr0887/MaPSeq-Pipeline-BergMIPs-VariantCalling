@@ -11,7 +11,7 @@
     <property name="workflowName" value="BergMIPsVariantCalling" />
   </bean>
 
-  <bean id="BergMIPsVariantCallingMessageService" class="edu.unc.mapseq.messaging.bermips.vc.BergMIPsVariantCallingMessageService" init-method="start"
+  <bean id="BergMIPsVariantCallingMessageService" class="edu.unc.mapseq.messaging.bergmips.vc.BergMIPsVariantCallingMessageService" init-method="start"
     destroy-method="stop" activation="eager">
     <property name="connectionFactory" ref="connectionFactory" />
     <property name="messageListener" ref="BergMIPsVariantCallingMessageListener" />
