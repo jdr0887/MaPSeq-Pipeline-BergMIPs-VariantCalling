@@ -40,207 +40,219 @@ import edu.unc.mapseq.workflow.sequencing.SequencingWorkflowUtil;
 
 public class BergMIPsVariantCallingWorkflow extends AbstractSequencingWorkflow {
 
-    private static final Logger logger = LoggerFactory.getLogger(BergMIPsVariantCallingWorkflow.class);
+	private static final Logger logger = LoggerFactory.getLogger(BergMIPsVariantCallingWorkflow.class);
 
-    public BergMIPsVariantCallingWorkflow() {
-        super();
-    }
+	public BergMIPsVariantCallingWorkflow() {
+		super();
+	}
 
-    @Override
-    public Graph<CondorJob, CondorJobEdge> createGraph() throws WorkflowException {
-        logger.info("ENTERING createGraph()");
+	@Override
+	public Graph<CondorJob, CondorJobEdge> createGraph() throws WorkflowException {
+		logger.info("ENTERING createGraph()");
 
-        DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(CondorJobEdge.class);
+		DirectedGraph<CondorJob, CondorJobEdge> graph = new DefaultDirectedGraph<CondorJob, CondorJobEdge>(
+				CondorJobEdge.class);
 
-        int count = 0;
+		int count = 0;
 
-        Set<Sample> sampleSet = getAggregatedSamples();
-        logger.info("sampleSet.size(): {}", sampleSet.size());
+		Set<Sample> sampleSet = SequencingWorkflowUtil
+				.getAggregatedSamples(getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+		logger.info("sampleSet.size(): {}", sampleSet.size());
 
-        String siteName = getWorkflowBeanService().getAttributes().get("siteName");
-        String subjectMergeHome = getWorkflowBeanService().getAttributes().get("subjectMergeHome");
-        String referenceSequence = getWorkflowBeanService().getAttributes().get("referenceSequence");
-        String baitIntervalList = getWorkflowBeanService().getAttributes().get("baitIntervalList");
-        String targetIntervalList = getWorkflowBeanService().getAttributes().get("targetIntervalList");
-        String bed = getWorkflowBeanService().getAttributes().get("bed");
+		String siteName = getWorkflowBeanService().getAttributes().get("siteName");
+		String subjectMergeHome = getWorkflowBeanService().getAttributes().get("subjectMergeHome");
+		String referenceSequence = getWorkflowBeanService().getAttributes().get("referenceSequence");
+		String baitIntervalList = getWorkflowBeanService().getAttributes().get("baitIntervalList");
+		String targetIntervalList = getWorkflowBeanService().getAttributes().get("targetIntervalList");
+		String bed = getWorkflowBeanService().getAttributes().get("bed");
 
-        WorkflowRunAttempt attempt = getWorkflowRunAttempt();
-        WorkflowRun workflowRun = attempt.getWorkflowRun();
+		WorkflowRunAttempt attempt = getWorkflowRunAttempt();
+		WorkflowRun workflowRun = attempt.getWorkflowRun();
 
-        try {
+		try {
 
-            Set<String> subjectNameSet = new HashSet<String>();
-            for (Sample sample : sampleSet) {
+			Set<String> subjectNameSet = new HashSet<String>();
+			for (Sample sample : sampleSet) {
 
-                if ("Undetermined".equals(sample.getBarcode())) {
-                    continue;
-                }
+				if ("Undetermined".equals(sample.getBarcode())) {
+					continue;
+				}
 
-                logger.info(sample.toString());
+				logger.info(sample.toString());
 
-                Set<Attribute> sampleAttributes = sample.getAttributes();
-                if (sampleAttributes != null && !sampleAttributes.isEmpty()) {
-                    for (Attribute attribute : sampleAttributes) {
-                        if (attribute.getName().equals("subjectName")) {
-                            subjectNameSet.add(attribute.getValue());
-                            break;
-                        }
-                    }
-                }
-            }
+				Set<Attribute> sampleAttributes = sample.getAttributes();
+				if (sampleAttributes != null && !sampleAttributes.isEmpty()) {
+					for (Attribute attribute : sampleAttributes) {
+						if (attribute.getName().equals("subjectName")) {
+							subjectNameSet.add(attribute.getValue());
+							break;
+						}
+					}
+				}
+			}
 
-            Set<String> synchronizedSubjectNameSet = Collections.synchronizedSet(subjectNameSet);
+			Set<String> synchronizedSubjectNameSet = Collections.synchronizedSet(subjectNameSet);
 
-            if (synchronizedSubjectNameSet.isEmpty()) {
-                throw new WorkflowException("subjectNameSet is empty");
-            }
+			if (synchronizedSubjectNameSet.isEmpty()) {
+				throw new WorkflowException("subjectNameSet is empty");
+			}
 
-            if (synchronizedSubjectNameSet.size() > 1) {
-                throw new WorkflowException("multiple subjectName values across samples");
-            }
+			if (synchronizedSubjectNameSet.size() > 1) {
+				throw new WorkflowException("multiple subjectName values across samples");
+			}
 
-            String subjectName = synchronizedSubjectNameSet.iterator().next();
+			String subjectName = synchronizedSubjectNameSet.iterator().next();
 
-            if (StringUtils.isEmpty(subjectName)) {
-                throw new WorkflowException("empty subjectName");
-            }
+			if (StringUtils.isEmpty(subjectName)) {
+				throw new WorkflowException("empty subjectName");
+			}
 
-            // project directories
-            File subjectDirectory = new File(subjectMergeHome, subjectName);
-            subjectDirectory.mkdirs();
-            logger.info("subjectDirectory.getAbsolutePath(): {}", subjectDirectory.getAbsolutePath());
+			// project directories
+			File subjectDirectory = new File(subjectMergeHome, subjectName);
+			subjectDirectory.mkdirs();
+			logger.info("subjectDirectory.getAbsolutePath(): {}", subjectDirectory.getAbsolutePath());
 
-            List<File> bamFileList = new ArrayList<File>();
+			List<File> bamFileList = new ArrayList<File>();
 
-            for (Sample sample : sampleSet) {
+			for (Sample sample : sampleSet) {
 
-                if ("Undetermined".equals(sample.getBarcode())) {
-                    continue;
-                }
+				if ("Undetermined".equals(sample.getBarcode())) {
+					continue;
+				}
 
-                Workflow workflow = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO().findByName("BergMIPsAlignment").get(0);
+				Workflow workflow = getWorkflowBeanService().getMaPSeqDAOBeanService().getWorkflowDAO()
+						.findByName("BergMIPsAlignment").get(0);
 
-                File bamFile = SequencingWorkflowUtil.findFile(getWorkflowBeanService().getMaPSeqDAOBeanService(), sample, workflowRun, workflow,
-                        PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM, ".rg.bam");
+				File bamFile = SequencingWorkflowUtil.findFile(getWorkflowBeanService().getMaPSeqDAOBeanService(),
+						sample, workflowRun, workflow, PicardAddOrReplaceReadGroups.class, MimeType.APPLICATION_BAM,
+						".rg.bam");
 
-                if (bamFile == null) {
-                    logger.warn("No BAM File found for: {}", sample.toString());
-                    continue;
-                }
+				if (bamFile == null) {
+					logger.warn("No BAM File found for: {}", sample.toString());
+					continue;
+				}
 
-                bamFileList.add(bamFile);
+				bamFileList.add(bamFile);
 
-            }
+			}
 
-            // what do we expect here? Number of samples should match number of bam file found, right?
-            if (sampleSet.size() != bamFileList.size()) {
-                throw new WorkflowException("Number of Samples does not match number of bam files found");
-            }
+			// what do we expect here? Number of samples should match number of
+			// bam file found, right?
+			if (sampleSet.size() != bamFileList.size()) {
+				throw new WorkflowException("Number of Samples does not match number of bam files found");
+			}
 
-            // new job
-            CondorJobBuilder builder = SequencingWorkflowJobFactory.createJob(++count, PicardMergeSAMCLI.class, attempt.getId()).siteName(siteName);
-            File mergeBAMFilesOut = new File(subjectDirectory, String.format("%s.merged.bam", subjectName));
-            builder.addArgument(PicardMergeSAMCLI.SORTORDER, "coordinate").addArgument(PicardMergeSAMCLI.OUTPUT, mergeBAMFilesOut.getAbsolutePath());
-            for (File f : bamFileList) {
-                logger.info("Using file: {}", f.getAbsolutePath());
-                builder.addArgument(PicardMergeSAMCLI.INPUT, f.getAbsolutePath());
-            }
-            CondorJob mergeBAMFilesJob = builder.build();
-            logger.info(mergeBAMFilesJob.toString());
-            graph.addVertex(mergeBAMFilesJob);
+			// new job
+			CondorJobBuilder builder = SequencingWorkflowJobFactory
+					.createJob(++count, PicardMergeSAMCLI.class, attempt.getId()).siteName(siteName);
+			File mergeBAMFilesOut = new File(subjectDirectory, String.format("%s.merged.bam", subjectName));
+			builder.addArgument(PicardMergeSAMCLI.SORTORDER, "coordinate").addArgument(PicardMergeSAMCLI.OUTPUT,
+					mergeBAMFilesOut.getAbsolutePath());
+			for (File f : bamFileList) {
+				logger.info("Using file: {}", f.getAbsolutePath());
+				builder.addArgument(PicardMergeSAMCLI.INPUT, f.getAbsolutePath());
+			}
+			CondorJob mergeBAMFilesJob = builder.build();
+			logger.info(mergeBAMFilesJob.toString());
+			graph.addVertex(mergeBAMFilesJob);
 
-            // new job
-            builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId()).siteName(siteName);
-            File mergeBAMFilesIndexOut = new File(subjectDirectory, mergeBAMFilesOut.getName().replace(".bam", ".bai"));
-            builder.addArgument(SAMToolsIndexCLI.INPUT, mergeBAMFilesOut.getAbsolutePath()).addArgument(SAMToolsIndexCLI.OUTPUT,
-                    mergeBAMFilesIndexOut.getAbsolutePath());
-            CondorJob samtoolsIndexJob = builder.build();
-            logger.info(samtoolsIndexJob.toString());
-            graph.addVertex(samtoolsIndexJob);
-            graph.addEdge(mergeBAMFilesJob, samtoolsIndexJob);
+			// new job
+			builder = SequencingWorkflowJobFactory.createJob(++count, SAMToolsIndexCLI.class, attempt.getId())
+					.siteName(siteName);
+			File mergeBAMFilesIndexOut = new File(subjectDirectory, mergeBAMFilesOut.getName().replace(".bam", ".bai"));
+			builder.addArgument(SAMToolsIndexCLI.INPUT, mergeBAMFilesOut.getAbsolutePath())
+					.addArgument(SAMToolsIndexCLI.OUTPUT, mergeBAMFilesIndexOut.getAbsolutePath());
+			CondorJob samtoolsIndexJob = builder.build();
+			logger.info(samtoolsIndexJob.toString());
+			graph.addVertex(samtoolsIndexJob);
+			graph.addEdge(mergeBAMFilesJob, samtoolsIndexJob);
 
-            // new job
-            builder = SequencingWorkflowJobFactory.createJob(++count, PicardCollectHsMetricsCLI.class, attempt.getId()).siteName(siteName);
-            File picardCollectHsMetricsFile = new File(subjectDirectory, mergeBAMFilesOut.getName().replace(".bam", ".hs.metrics"));
-            builder.addArgument(PicardCollectHsMetricsCLI.INPUT, mergeBAMFilesOut.getAbsolutePath())
-                    .addArgument(PicardCollectHsMetricsCLI.OUTPUT, picardCollectHsMetricsFile.getAbsolutePath())
-                    .addArgument(PicardCollectHsMetricsCLI.REFERENCESEQUENCE, referenceSequence)
-                    .addArgument(PicardCollectHsMetricsCLI.BAITINTERVALS, baitIntervalList)
-                    .addArgument(PicardCollectHsMetricsCLI.TARGETINTERVALS, targetIntervalList);
-            CondorJob picardCollectHsMetricsJob = builder.build();
-            logger.info(picardCollectHsMetricsJob.toString());
-            graph.addVertex(picardCollectHsMetricsJob);
-            graph.addEdge(samtoolsIndexJob, picardCollectHsMetricsJob);
+			// new job
+			builder = SequencingWorkflowJobFactory.createJob(++count, PicardCollectHsMetricsCLI.class, attempt.getId())
+					.siteName(siteName);
+			File picardCollectHsMetricsFile = new File(subjectDirectory,
+					mergeBAMFilesOut.getName().replace(".bam", ".hs.metrics"));
+			builder.addArgument(PicardCollectHsMetricsCLI.INPUT, mergeBAMFilesOut.getAbsolutePath())
+					.addArgument(PicardCollectHsMetricsCLI.OUTPUT, picardCollectHsMetricsFile.getAbsolutePath())
+					.addArgument(PicardCollectHsMetricsCLI.REFERENCESEQUENCE, referenceSequence)
+					.addArgument(PicardCollectHsMetricsCLI.BAITINTERVALS, baitIntervalList)
+					.addArgument(PicardCollectHsMetricsCLI.TARGETINTERVALS, targetIntervalList);
+			CondorJob picardCollectHsMetricsJob = builder.build();
+			logger.info(picardCollectHsMetricsJob.toString());
+			graph.addVertex(picardCollectHsMetricsJob);
+			graph.addEdge(samtoolsIndexJob, picardCollectHsMetricsJob);
 
-            // new job
-            builder = SequencingWorkflowJobFactory.createJob(++count, FreeBayesCLI.class, attempt.getId()).siteName(siteName);
-            File freeBayesOutput = new File(subjectDirectory, mergeBAMFilesOut.getName().replace(".bam", ".vcf"));
-            builder.addArgument(FreeBayesCLI.GENOTYPEQUALITIES).addArgument(FreeBayesCLI.REPORTMONOMORPHIC)
-                    .addArgument(FreeBayesCLI.BAM, mergeBAMFilesOut.getAbsolutePath())
-                    .addArgument(FreeBayesCLI.VCF, freeBayesOutput.getAbsolutePath()).addArgument(FreeBayesCLI.FASTAREFERENCE, referenceSequence)
-                    .addArgument(FreeBayesCLI.TARGETS, bed);
-            CondorJob freeBayesJob = builder.build();
-            logger.info(freeBayesJob.toString());
-            graph.addVertex(freeBayesJob);
-            graph.addEdge(samtoolsIndexJob, freeBayesJob);
+			// new job
+			builder = SequencingWorkflowJobFactory.createJob(++count, FreeBayesCLI.class, attempt.getId())
+					.siteName(siteName);
+			File freeBayesOutput = new File(subjectDirectory, mergeBAMFilesOut.getName().replace(".bam", ".vcf"));
+			builder.addArgument(FreeBayesCLI.GENOTYPEQUALITIES).addArgument(FreeBayesCLI.REPORTMONOMORPHIC)
+					.addArgument(FreeBayesCLI.BAM, mergeBAMFilesOut.getAbsolutePath())
+					.addArgument(FreeBayesCLI.VCF, freeBayesOutput.getAbsolutePath())
+					.addArgument(FreeBayesCLI.FASTAREFERENCE, referenceSequence).addArgument(FreeBayesCLI.TARGETS, bed);
+			CondorJob freeBayesJob = builder.build();
+			logger.info(freeBayesJob.toString());
+			graph.addVertex(freeBayesJob);
+			graph.addEdge(samtoolsIndexJob, freeBayesJob);
 
-        } catch (Exception e) {
-            throw new WorkflowException(e);
-        }
+		} catch (Exception e) {
+			throw new WorkflowException(e);
+		}
 
-        return graph;
-    }
+		return graph;
+	}
 
-    @Override
-    public void postRun() throws WorkflowException {
-        logger.info("ENTERING postRun()");
+	@Override
+	public void postRun() throws WorkflowException {
+		logger.info("ENTERING postRun()");
 
-        ExecutorService es = Executors.newSingleThreadExecutor();
+		ExecutorService es = Executors.newSingleThreadExecutor();
 
-        try {
-            String subjectMergeHome = getWorkflowBeanService().getAttributes().get("subjectMergeHome");
+		try {
+			String subjectMergeHome = getWorkflowBeanService().getAttributes().get("subjectMergeHome");
 
-            Set<String> subjectNameSet = new HashSet<String>();
-            Set<Sample> sampleSet = getAggregatedSamples();
-            for (Sample sample : sampleSet) {
+			Set<String> subjectNameSet = new HashSet<String>();
+			Set<Sample> sampleSet = SequencingWorkflowUtil
+					.getAggregatedSamples(getWorkflowBeanService().getMaPSeqDAOBeanService(), getWorkflowRunAttempt());
+			for (Sample sample : sampleSet) {
 
-                if ("Undetermined".equals(sample.getBarcode())) {
-                    continue;
-                }
+				if ("Undetermined".equals(sample.getBarcode())) {
+					continue;
+				}
 
-                logger.info(sample.toString());
+				logger.info(sample.toString());
 
-                Set<Attribute> sampleAttributes = sample.getAttributes();
-                if (sampleAttributes != null && !sampleAttributes.isEmpty()) {
-                    for (Attribute attribute : sampleAttributes) {
-                        if (attribute.getName().equals("subjectName")) {
-                            subjectNameSet.add(attribute.getValue());
-                            break;
-                        }
-                    }
-                }
-            }
+				Set<Attribute> sampleAttributes = sample.getAttributes();
+				if (sampleAttributes != null && !sampleAttributes.isEmpty()) {
+					for (Attribute attribute : sampleAttributes) {
+						if (attribute.getName().equals("subjectName")) {
+							subjectNameSet.add(attribute.getValue());
+							break;
+						}
+					}
+				}
+			}
 
-            Set<String> synchronizedSubjectNameSet = Collections.synchronizedSet(subjectNameSet);
-            String subjectName = synchronizedSubjectNameSet.iterator().next();
+			Set<String> synchronizedSubjectNameSet = Collections.synchronizedSet(subjectNameSet);
+			String subjectName = synchronizedSubjectNameSet.iterator().next();
 
-            if (StringUtils.isEmpty(subjectName)) {
-                throw new WorkflowException("empty subjectName");
-            }
+			if (StringUtils.isEmpty(subjectName)) {
+				throw new WorkflowException("empty subjectName");
+			}
 
-            MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
+			MaPSeqDAOBeanService daoBean = getWorkflowBeanService().getMaPSeqDAOBeanService();
 
-            RegisterToIRODSRunnable registerToIRODSRunnable = new RegisterToIRODSRunnable(daoBean, getWorkflowRunAttempt().getWorkflowRun(),
-                    subjectName, subjectMergeHome);
-            es.submit(registerToIRODSRunnable);
+			RegisterToIRODSRunnable registerToIRODSRunnable = new RegisterToIRODSRunnable(daoBean,
+					getWorkflowRunAttempt().getWorkflowRun(), subjectName, subjectMergeHome);
+			es.submit(registerToIRODSRunnable);
 
-            es.shutdown();
-            es.awaitTermination(1L, TimeUnit.HOURS);
-        } catch (InterruptedException e) {
-            logger.error(e.getMessage(), e);
-            throw new WorkflowException(e);
-        }
+			es.shutdown();
+			es.awaitTermination(1L, TimeUnit.HOURS);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage(), e);
+			throw new WorkflowException(e);
+		}
 
-    }
+	}
 
 }
