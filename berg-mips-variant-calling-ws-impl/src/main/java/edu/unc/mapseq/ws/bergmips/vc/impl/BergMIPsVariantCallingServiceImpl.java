@@ -46,6 +46,11 @@ public class BergMIPsVariantCallingServiceImpl implements BergMIPsVariantCalling
         List<MetricsResult> ret = new ArrayList<>();
 
         File subjectDirectory = new File(subjectMergeHome, subjectName);
+        
+        if (!subjectDirectory.exists()) {
+        	logger.warn("Subject Directory doesn't exist");
+        	return ret;
+        }
 
         Collection<File> fileList = FileUtils.listFiles(subjectDirectory, FileFilterUtils.suffixFileFilter(".hs.metrics"), null);
 
