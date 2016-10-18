@@ -2,13 +2,13 @@
  <parent>
   <groupId>edu.unc.mapseq.pipelines</groupId>
   <artifactId>berg-mips-variant-calling</artifactId>
-  <version>0.6.12-SNAPSHOT</version>
+  <version>0.6.12</version>
  </parent>
  <name>MaPSeq :: Pipelines :: BergMIPs :: Variant Calling :: Executor</name>
  <modelVersion>4.0.0</modelVersion>
  <groupId>edu.unc.mapseq.pipelines.berg-mips-variant-calling</groupId>
  <artifactId>berg-mips-variant-calling-executor</artifactId>
- <version>0.6.12-SNAPSHOT</version>
+ <version>0.6.12</version>
  <packaging>bundle</packaging>
  <dependencies>
   <dependency>
